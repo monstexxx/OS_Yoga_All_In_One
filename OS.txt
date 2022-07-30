@@ -1,0 +1,36 @@
+sudo apt update && apt dist-upgrade
+vi /etc/hosts
+vi /etc/sudoers.d/<user>
+sudo apt install python3-dev libffi-dev gcc libssl-dev
+sudo apt install python3-pip
+sudo pip3 install -U pip
+sudo pip install -U 'ansible>=4,<6'
+sudo pip3 install git+https://opendev.org/openstack/kolla-ansible@stable/yoga
+sudo mkdir -p /etc/kolla
+sudo chown $USER:$USER /etc/kolla
+cp -r /usr/local/share/kolla-ansible/etc_examples/kolla/* /etc/kolla
+cp /usr/local/share/kolla-ansible/ansible/inventory/* .
+kolla-ansible install-deps
+mkdir -p /etc/ansible
+chown -r $USER:$USER /etc/ansible
+chmod +x /etc/ansible/ansible.cfg
+vi /etc/ansible/ansible.cfg
+[defaults]
+host_key_checking=False
+pipelining=True
+forks=100
+ansible -i all-in-one all -m ping
+kolla-genpwd
+vi /etc/kolla/globals.yml
+kolla_base_distro: "ubuntu"
+kolla_install_type: "binary"
+openstack_release: "yoga"
+kolla_internal_vip_address: "10.99.98.100"
+network_interface: "ens160"
+neutron_external_interface: "ens192"
+kolla-ansible -i ./all-in-one bootstrap-servers
+kolla-ansible -i ./all-in-one prechecks
+kolla-ansible -i ./all-in-one deploy
+kolla-ansible post-deploy
+pip install python-openstackclient -c https://releases.openstack.org/constraints/upper/yoga
+
